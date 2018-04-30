@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <string.h>
 #include <pthread.h>
 #include <sys/types.h>
@@ -23,56 +25,16 @@ int main(void)
 {
 	// Initialize all the settings
 	char *buffer, *mem_buffer, *cursor, *args[MAX_ARGS];
-	int pid, addr, value, num_args, success; 
+	int pid, addr, value, num_args, fifo_in, fifo_out;
 	pid_t child_pid;
 
 	buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
 	mem_buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
 
-	/* Create a child process which will run the memory 
-	 * This process have it's stdout and stdin redirected using pipes
-	 */
-	if (pipe(in_fd) < 0)
-	{
-		printf("Error\n");
-		return 0;
-	}
+	// Open up the pipelin
+	fifo_out = open("fifo_in", O_WRONLY);
+	fifo_in = open("fifo_out", O_RDONLY);
 
-	if (pipe(out_fd) < 0)
-	{
-		printf("Pipe error\n");
-		return 0;
-	}
-
-	if ((child_pid = fork()) == 0)
-	{
-		close(out_fd[WRITE]);
-		close(in_fd[READ]);
-
-		if (dup2(out_fd[READ], STDIN_FILENO) < 0)
-		{
-			
-			fprintf(stderr, "Error overwriting stdin\nErrno: %d\n", errno);
-			return 0;
-		}
-
-		// Dupe over stdout
-		fflush(stdout);
-
-		if (dup2(in_fd[WRITE], STDOUT_FILENO) < 0)
-		{
-			fprintf(stderr, "Error overwriting stdout\nErrno: %d\n", errno);
-			return 0;
-		}
-
-		char *argv[] = {"./mem", NULL};
-		execvp("./mem", argv);
-		fputs("Error creating new process\n", stderr);
-		exit(-1);
-	}
-
-	close(out_fd[READ]);
-	close(in_fd[WRITE]);
 	sleep(1);
 
 	while (1)
@@ -107,8 +69,8 @@ int main(void)
 			// TODO: Check for errors
 
 			// Output to memory, and then read from memory
-			dprintf(out_fd[WRITE], "read %d\n", addr);
-			read(in_fd[READ], mem_buffer, MAX_BUFFER_SIZE);
+			dprintf(fifo_out, "read %d\n", addr);
+			read(fifo_in, mem_buffer, MAX_BUFFER_SIZE);
 
 			// TODO: Format the stuff
 			printf("%s", mem_buffer);
@@ -120,7 +82,7 @@ int main(void)
 			addr = atoi(args[1]);
 			value = atoi(args[2]);
 
-			dprintf(out_fd[WRITE], "write %d %d\n", addr, value);
+			dprintf(fifo_out, "write %d %d\n", addr, value);
 		}
 
 		else if (!strcmp(buffer, "exit"))
@@ -135,8 +97,10 @@ int main(void)
 	}
 
 	// End the mem process
-	dprintf(out_fd[WRITE], "exit\n");
+	dprintf(fifo_out, "exit\n");
 
+	close(fifo_in);
+	close(fifo_out);
 	if (buffer)
 		free(buffer);
 

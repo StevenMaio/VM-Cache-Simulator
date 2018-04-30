@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -13,22 +16,26 @@ int main(void)
 {
 	// main loop ting
 	char *buffer, *cursor, *args[MAX_ARGS];
-	int addr, value, loop, num_args, i;
+	int addr, value, loop, num_args, i, fifo_in, fifo_out;
 
 	// Initialize main memory (1024 bytes of mem)
 	memory = calloc(1024, 1);
 	buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
 	loop = 1;
 
-	sleep(5);
+	fifo_in = open("fifo_in", O_RDONLY);
+	fifo_out = open("fifo_out", O_WRONLY);
+
+	sleep(1);
 
 	// Main loop of the program
 	while (loop)
 	{
 		// Read a line from input
 		*buffer = 0;
-		fflush(stdout);
-		fgets(buffer, MAX_BUFFER_SIZE, stdin);
+//		fflush(fifo_fd);
+//		fgets(buffer, MAX_BUFFER_SIZE, stdin);
+		read(fifo_in, buffer, MAX_BUFFER_SIZE);
 
 		// Process the input
 		strtok(buffer, "\n");
@@ -50,26 +57,26 @@ int main(void)
 
 			if (addr%4)
 			{
-				fprintf(stderr, "Error : requested address out of alignment\n");
+				dprintf(fifo_out, "Error : requested address out of alignment\n");
 				continue;
 			}
 
 			else if (addr < 0 || addr >= 1024)
 			{
-				fprintf(stderr, "Error : address out of range\n");
+				dprintf(fifo_out, "Error : address out of range\n");
 				continue;
 			}
 
 			// Print hte value
 			value = *(int*)(memory + addr);
-			printf("%d\n", value);
+			dprintf(fifo_out, "%d\n", value);
 		}
 
 		else if (!strcmp(buffer, "write"))
 		{
 			if (num_args != 3)
 			{
-				fprintf(stderr, "Error : incorrect number of arguments\n");
+				dprintf(fifo_out, "Error : incorrect number of arguments\n");
 				continue;
 			}
 
@@ -78,13 +85,13 @@ int main(void)
 
 			if (addr%4)
 			{
-				fprintf(stderr, "Error : requested address out of alignment\n");
+				dprintf(fifo_out, "Error : requested address out of alignment\n");
 				continue;
 			}
 
 			else if (addr < 0 || addr >= 1024)
 			{
-				fprintf(stderr, "Error : address out of range\n");
+				dprintf(fifo_out, "Error : address out of range\n");
 				continue;
 			}
 
@@ -102,6 +109,8 @@ int main(void)
 		}
 	}
 
+	close(fifo_in);
+	close(fifo_out);
 	free(memory);
 	free(buffer);
 	return 0;
