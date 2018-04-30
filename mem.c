@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define MAX_ARGS 10
 
@@ -19,13 +20,14 @@ int main(void)
 	buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
 	loop = 1;
 
+	sleep(5);
+
 	// Main loop of the program
 	while (loop)
 	{
 		// Read a line from input
 		*buffer = 0;
 		fflush(stdout);
-//		printf("> ");
 		fgets(buffer, MAX_BUFFER_SIZE, stdin);
 
 		// Process the input

@@ -16,6 +16,7 @@
 int const MAX_THREADS = 4; 
 int const MAX_BUFFER_SIZE = 255;
 int num_threads = 0;
+int in_fd[2], out_fd[2];	// file descriptors
 
 // Main thread
 int main(void) 
@@ -23,7 +24,6 @@ int main(void)
 	// Initialize all the settings
 	char *buffer, *mem_buffer, *cursor, *args[MAX_ARGS];
 	int pid, addr, value, num_args, success; 
-	int in_fd[2], out_fd[2];	// file descriptors
 	pid_t child_pid;
 
 	buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
@@ -88,17 +88,18 @@ int main(void)
 		cursor = buffer;
 		num_args = 1;
 
+		// Check to see if cursor is pointing to a null character
+		if (*cursor == 0)
+			continue;
+
 		while (cursor = strtok(NULL, " "))
 		{
 			args[num_args] = cursor;
 			num_args++;
 		}
 
-		if (!strcmp(buffer, "exit"))
-		{
-			break;
-		}
 
+		// TODO: Implement this correctly in the future
 		if (!strcmp(buffer, "read"))
 		{
 			addr = atoi(args[1]);
@@ -113,6 +114,7 @@ int main(void)
 			printf("%s", mem_buffer);
 		}
 
+		// TODO: Implement this correctly
 		else if (!strcmp(buffer, "write"))
 		{
 			addr = atoi(args[1]);
@@ -120,10 +122,20 @@ int main(void)
 
 			dprintf(out_fd[WRITE], "write %d %d\n", addr, value);
 		}
+
+		else if (!strcmp(buffer, "exit"))
+		{
+			break;
+		}
+
+		else 
+		{
+			printf("Unknown command\n");
+		}
 	}
 
-	// Cleanup
-	kill(child_pid, SIGKILL);
+	// End the mem process
+	dprintf(out_fd[WRITE], "exit\n");
 
 	if (buffer)
 		free(buffer);
