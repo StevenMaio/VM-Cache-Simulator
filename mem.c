@@ -25,7 +25,7 @@ int main(void)
 		// Read a line from input
 		*buffer = 0;
 		fflush(stdout);
-		printf("> ");
+//		printf("> ");
 		fgets(buffer, MAX_BUFFER_SIZE, stdin);
 
 		// Process the input
@@ -48,13 +48,13 @@ int main(void)
 
 			if (addr%4)
 			{
-				printf("Error : requested address out of alignment\n");
+				fprintf(stderr, "Error : requested address out of alignment\n");
 				continue;
 			}
 
 			else if (addr < 0 || addr >= 1024)
 			{
-				printf("Error : address out of range\n");
+				fprintf(stderr, "Error : address out of range\n");
 				continue;
 			}
 
@@ -67,7 +67,7 @@ int main(void)
 		{
 			if (num_args != 3)
 			{
-				printf("Error : incorrect number of arguments\n");
+				fprintf(stderr, "Error : incorrect number of arguments\n");
 				continue;
 			}
 
@@ -76,13 +76,13 @@ int main(void)
 
 			if (addr%4)
 			{
-				printf("Error : requested address out of alignment\n");
+				fprintf(stderr, "Error : requested address out of alignment\n");
 				continue;
 			}
 
 			else if (addr < 0 || addr >= 1024)
 			{
-				printf("Error : address out of range\n");
+				fprintf(stderr, "Error : address out of range\n");
 				continue;
 			}
 
