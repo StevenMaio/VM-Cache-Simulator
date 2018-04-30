@@ -41,9 +41,63 @@ int main(void)
 			num_args++;
 		}
 
-		// TODO: This part can be removed later
-		for (i = 0; i < num_args; i++)
-			printf("%s\n", args[i]);
+		if (!strcmp(buffer, "read"))
+		{
+			// check to see if x is properly alg
+			addr = atoi(args[1]);
+
+			if (addr%4)
+			{
+				printf("Error : requested address out of alignment\n");
+				continue;
+			}
+
+			else if (addr < 0 || addr >= 1024)
+			{
+				printf("Error : address out of range\n");
+				continue;
+			}
+
+			// Print hte value
+			value = *(int*)(memory + addr);
+			printf("%d\n", value);
+		}
+
+		else if (!strcmp(buffer, "write"))
+		{
+			if (num_args != 3)
+			{
+				printf("Error : incorrect number of arguments\n");
+				continue;
+			}
+
+			addr = atoi(args[1]);
+			value = atoi(args[2]);
+
+			if (addr%4)
+			{
+				printf("Error : requested address out of alignment\n");
+				continue;
+			}
+
+			else if (addr < 0 || addr >= 1024)
+			{
+				printf("Error : address out of range\n");
+				continue;
+			}
+
+			*((int*)(memory + addr)) = value;
+		}
+
+		else if (!strcmp(buffer, "exit"))
+		{
+			break;
+		}
+
+		else
+		{
+			printf("Unknown command\n");
+		}
 	}
 
 	free(memory);
