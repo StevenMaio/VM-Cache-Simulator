@@ -33,9 +33,7 @@ int main(void)
 	{
 		// Read a line from input
 		*buffer = 0;
-//		fflush(fifo_fd);
 		fsync(fifo_out);
-//		fgets(buffer, MAX_BUFFER_SIZE, stdin);
 		read(fifo_in, buffer, MAX_BUFFER_SIZE);
 
 		// Process the input
@@ -70,14 +68,14 @@ int main(void)
 
 			// Print hte value
 			value = *(int*)(memory + addr);
-			dprintf(fifo_out, "%d\n%c", value, 0);
+			dprintf(fifo_out, "%d", value);
 		}
 
 		else if (!strcmp(buffer, "write"))
 		{
 			if (num_args != 3)
 			{
-				dprintf(fifo_out, "Error : incorrect number of arguments\n");
+				dprintf(STDOUT_FILENO, "Error : incorrect number of arguments\n");
 				continue;
 			}
 
@@ -86,13 +84,13 @@ int main(void)
 
 			if (addr%4)
 			{
-				dprintf(fifo_out, "Error : requested address out of alignment\n");
+				dprintf(STDOUT_FILENO, "Error : requested address out of alignment\n");
 				continue;
 			}
 
 			else if (addr < 0 || addr >= 1024)
 			{
-				dprintf(fifo_out, "Error : address out of range\n");
+				dprintf(STDOUT_FILENO, "Error : address out of range\n");
 				continue;
 			}
 

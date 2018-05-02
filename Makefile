@@ -1,9 +1,9 @@
 THREAD = -lpthread -lrt
 CC = gcc -g
 MAIN_TARGET = main
-MAIN_SRC = main.c
+MAIN_SRC = src/main.c
 MEM_TARGET = mem
-MEM_SRC = mem.c
+MEM_SRC = src/mem.c
 FIFO_SRC = create_fifo.c
 FIFO_TARGET = fifo
 

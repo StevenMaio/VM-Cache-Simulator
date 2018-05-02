@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <signal.h>
+#include "structs.h"
 
 #define READ 0
 #define WRITE 1
@@ -19,6 +20,9 @@ int const MAX_THREADS = 4;
 int const MAX_BUFFER_SIZE = 255;
 int num_threads = 0;
 int in_fd[2], out_fd[2];	// file descriptors
+int unalloc_mem_curs = 0;
+
+struct thread_node *head = NULL;
 
 // Main thread
 int main(void) 
@@ -74,7 +78,7 @@ int main(void)
 			read(fifo_in, mem_buffer, MAX_BUFFER_SIZE);
 
 			// TODO: Format the stuff
-			printf("%s", mem_buffer);
+			printf("%s\n", mem_buffer);
 		}
 
 		// TODO: Implement this correctly
