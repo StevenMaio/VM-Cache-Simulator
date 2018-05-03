@@ -23,8 +23,8 @@ int main(void)
 	buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
 	loop = 1;
 
-	fifo_in = open("fifo_in", O_RDONLY);
-	fifo_out = open("fifo_out", O_WRONLY);
+	fifo_in = open("fifo_1", O_RDONLY);
+	fifo_out = open("fifo_2", O_WRONLY);
 
 	sleep(1);
 

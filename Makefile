@@ -14,10 +14,10 @@ mem: clean
 	$(CC) $(MEM_SRC) $(THREAD) -o $(MEM_TARGET)
 
 fifo_in:
-	mkfifo -m a=rw fifo_in
+	mkfifo -m a=rw fifo_1
 
 fifo_out:
-	mkfifo -m a=rw fifo_out
+	mkfifo -m a=rw fifo_2
 
 clean:
 	rm -f mem main fifo*

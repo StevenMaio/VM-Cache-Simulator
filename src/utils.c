@@ -1,11 +1,32 @@
 #include <pthread.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include "structs.h"
 
-void thread_func(void)
+/*
+ * Thread protocol. At the moment, this doesn't do anything interesting.
+ */
+void *thread_func(void* vargp)
 {
 	// Loop infinitely
 	while(1);
+}
+
+/*
+ * This function frees the page table and all of its second layer tables
+ */
+int free_page_table(process_node *process) {
+	pt_entry page_table = process->page_table;
+	sec_lvl_pte sec_lvl;
+
+	int i, j;
+	for (i = 0; i < PTE_ENTRIES; i++)
+	{
+		sec_lvl = page_table.entries[i];
+		free(sec_lvl);
+	}
+
+	free(page_table);
 }
 
 /* 
@@ -38,11 +59,19 @@ process_node *init_process(process_node *head)
 	// create a new process
 	int i;
 	pthread_t pid;
-	process_node *node = (process_node*) malloc(sizeof(process_node));
-	node->page_table = init_page_table();
+	process_node *node;
 
+	// TODO: Create a new thread
+	if (pthread_create(&pid, NULL, thread_func, NULL)) {
+		// IF an error occurred
+		printf("An error occurred creating a new process\n");
+		return NULL;
+	}
+	
+	node = (process_node*) malloc(sizeof(process_node));
 	node->page_table = init_page_table();
+	node->pid = pid;
+	node->next = NULL;
 
-	// create a a new thread
 	return node;
 }

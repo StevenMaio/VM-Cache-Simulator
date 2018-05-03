@@ -36,8 +36,8 @@ int main(void)
 	mem_buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
 
 	// Open up the pipelin
-	fifo_out = open("fifo_in", O_WRONLY);
-	fifo_in = open("fifo_out", O_RDONLY);
+	fifo_out = open("fifo_1", O_WRONLY);
+	fifo_in = open("fifo_2", O_RDONLY);
 
 	sleep(1);
 
@@ -65,6 +65,10 @@ int main(void)
 			num_args++;
 		}
 
+		if (!strcmp(buffer, "create"))
+		{
+
+		}
 
 		// TODO: Implement this correctly in the future
 		if (!strcmp(buffer, "read"))
