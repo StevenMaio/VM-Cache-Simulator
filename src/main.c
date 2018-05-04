@@ -10,9 +10,6 @@
 #include <signal.h>
 #include "structs.h"
 
-#define READ 0
-#define WRITE 1
-
 // I can probably change this later
 #define MAX_ARGS 10
 
@@ -21,6 +18,7 @@ int const MAX_BUFFER_SIZE = 255;
 int num_threads = 0;
 int in_fd[2], out_fd[2];	// file descriptors
 int unalloc_mem_curs = 0;
+void *alloc_arr;
 
 struct thread_node *head = NULL;
 
@@ -34,6 +32,7 @@ int main(void)
 
 	buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
 	mem_buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
+	alloc_arr = malloc(1024/4);
 
 	// Open up the pipelin
 	fifo_out = open("fifo_1", O_WRONLY);

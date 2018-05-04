@@ -6,13 +6,16 @@
  */
 int free_page_table(process_node *process) {
 	page_table *pt = process->pt;
-	sec_lvl_pte *sec_lvl;
+	page_entry *sec_lvl;
 
 	int i, j;
-	for (i = 0; i < PTE_ENTRIES; i++)
+	for (i = 0; i < PT_ENTRIES; i++)
 	{
 		sec_lvl = pt->entries[i];
-		free(sec_lvl);
+
+		// Free sec_lvl if it has been allocated
+		if (sec_lvl)
+			free(sec_lvl);
 	}
 
 	free(pt);
@@ -25,20 +28,26 @@ page_table *init_page_table()
 {
 	// Initialize a page table entry
 	page_table *pt = (page_table*) malloc(sizeof(page_table));
-	sec_lvl_pte *sub_pte;
+	page_entry *sub_pte;
 	int i, j;
 	
-	for (i = 0; i < PTE_ENTRIES; i++)
+	for (i = 0; i < PT_ENTRIES; i++)
 	{
-		// Initialize second level page table
-		sub_pte = (sec_lvl_pte*) malloc(sizeof(sec_lvl_pte));
-		for (j = 0; j < PTE_ENTRIES; j++)
-		{
-			sub_pte->addr[j] = NULL;
-		}
-
-		pt->entries[i] = sub_pte;
+		pt->entries[i] = NULL;
 	}
 
 	return pt;
+}
+
+page_entry *init_page_entry() 
+{
+	page_entry *pe = (page_entry*) malloc(sizeof(page_entry));
+	int i;
+
+	for (i = 0; i < PT_ENTRIES; i++)
+	{
+		pe->addr[i] = -1;
+	}
+
+	return pe;
 }
