@@ -31,7 +31,7 @@ int main(void)
 	char *buffer, *mem_buffer, *cursor, *args[MAX_ARGS];
 	process_node *pcursor;
 	int pid, addr, prev_addr, virt_addr, value, num_args, 
-		fifo_in, fifo_out, found, modified;
+		fifo_in, fifo_out, found, modified, prev_value;
 	pthread_t tid;
 	pid_t child_pid;
 
@@ -223,10 +223,10 @@ int main(void)
 			}
 
 			// TODO: Check to see if the addr is cached
-			if (is_cached(cache_set, addr, &prev_addr, &value, &modified))
+			if (is_cached(cache_set, addr, &prev_addr, &prev_value, &modified))
 			{
 				printf("cache hit\n");
-				printf("%d\n", value);
+				printf("%d\n", prev_value);
 				continue;
 			} 
 
@@ -234,6 +234,7 @@ int main(void)
 			printf("cache miss\n");
 			dprintf(fifo_out, "read %d\n%c", addr, 0);
 			read(fifo_in, mem_buffer, MAX_BUFFER_SIZE);
+			sleep(1);
 
 			// TODO: Set the cache
 			if (prev_addr == -1)
@@ -248,7 +249,8 @@ int main(void)
 				if (modified)	
 				{
 					// Write the new value into memory
-					dprintf(fifo_out, "write %d %d\n%c", prev_addr, value, 0);
+					dprintf(fifo_out, "write %d %d\n%c", prev_addr, prev_value, 0);
+					sleep(1);
 				}
 
 
@@ -300,13 +302,37 @@ int main(void)
 			if (!found)
 				continue;
 
+			// Check to see if the addr is cached
+			if (is_cached(cache_set, addr, &prev_addr, &prev_value, &modified))
+			{
+				// Write the value to the cache
+				printf("cache hit\n");
+				set_cache(cache_set, addr, value, 1);
+				continue;
+			} 
+
+			printf("cache miss\n");
+			sleep(1);
+
 			if (addr == -1)
 			{
 				printf("Error : requested address hasn't been allocated\n");
 				continue;
 			}
 
-			dprintf(fifo_out, "write %d %d\n%c", addr, value, 0);
+			// Otherwise, read the data from main memory, and then cache it
+			if (prev_addr >= 0)
+			{
+
+				// If the cache has been modified, write the new value into
+				// main memory
+				if (modified)	
+				{
+					dprintf(fifo_out, "write %d %d\n%c", prev_addr, prev_value, 0);
+				}
+			}
+
+			set_cache(cache_set, addr, value, 1);
 		}
 
 		else if (!strcmp(buffer, "exit"))
