@@ -140,11 +140,16 @@ int main(void)
 			if (head == NULL)
 				continue;
 
+			// Call alloc in mem c
+			dprintf(fifo_out, "alloc\n%c", 0);
+			read(fifo_in, mem_buffer, MAX_BUFFER_SIZE);
+			addr = atoi(mem_buffer);
+
 			do
 			{
 				if (pcursor->pid == tid)
 				{
-					cse320_malloc(pcursor, &unalloc_mem_curs);
+					cse320_malloc_helper(pcursor, addr);
 					break;
 				}
 
@@ -235,17 +240,18 @@ int main(void)
 			dprintf(fifo_out, "read %d\n%c", addr, 0);
 			read(fifo_in, mem_buffer, MAX_BUFFER_SIZE);
 			sleep(1);
+			value = atoi(mem_buffer);
 
-			// TODO: Set the cache
+			// If the cache wasn't valid, add this to the cache
 			if (prev_addr == -1)
 			{
 				// When the cachine line isn't valid
-				set_cache(cache_set, addr, atoi(mem_buffer), 0);
+				set_cache(cache_set, addr, value, 0);
 			}
 
 			else
 			{
-				// Handling when the line is valid
+				// Send the new value to main memory if the cache was modified
 				if (modified)	
 				{
 					// Write the new value into memory
@@ -253,12 +259,10 @@ int main(void)
 					sleep(1);
 				}
 
-
-				set_cache(cache_set, addr, atoi(mem_buffer), 0);
+				set_cache(cache_set, addr, value, 0);
 			}
 
-			// TODO: Format the stuff
-			printf("%s\n", mem_buffer);
+			printf("%d\n", value);
 		}
 
 		// TODO: Implement this correctly
@@ -323,7 +327,6 @@ int main(void)
 			// Otherwise, read the data from main memory, and then cache it
 			if (prev_addr >= 0)
 			{
-
 				// If the cache has been modified, write the new value into
 				// main memory
 				if (modified)	

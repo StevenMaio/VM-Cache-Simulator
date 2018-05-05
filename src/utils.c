@@ -113,7 +113,7 @@ int get_virt_addr(int pt_entry_no, int entry_no)
 	return virt_addr;
 }
 
-int cse320_malloc(process_node *node, int *unalloc_cursor) {
+int cse320_malloc_helper(process_node *node, int addr) {
 	page_table *pt = node->pt;
 	page_entry *cursor;
 	int i, j, found, virt_addr;
@@ -132,8 +132,7 @@ int cse320_malloc(process_node *node, int *unalloc_cursor) {
 			pt->entries[i] = init_page_entry();
 			cursor = pt->entries[i];
 
-			cursor->addr[0] = *unalloc_cursor;
-			*(unalloc_cursor) = (*unalloc_cursor  + 4)%1024;
+			cursor->addr[0] = addr;
 			found = 1;
 			break;
 		}
@@ -144,8 +143,7 @@ int cse320_malloc(process_node *node, int *unalloc_cursor) {
 			// If we found unused space, allocate it
 			if (cursor->addr[j] == -1)
 			{
-				cursor->addr[j] = *unalloc_cursor;
-				*(unalloc_cursor) = (*unalloc_cursor  + 4)%1024;
+				cursor->addr[j] = addr;
 				found = 1;
 				break;
 			}

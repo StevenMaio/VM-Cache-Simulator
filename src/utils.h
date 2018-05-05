@@ -14,7 +14,7 @@ void mem_list(process_node *process_node);
 
 int init_process(process_node **head);
 
-int cse320_malloc(process_node *node, int *unalloc_cursor);
+int cse320_malloc_helper(process_node *node, int addr);
 
 int cse320_virt_to_phys(process_node *node, int address);
 

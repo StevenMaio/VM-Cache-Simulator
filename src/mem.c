@@ -10,7 +10,15 @@
 
 int const MAX_SIZE = 1024;
 int const MAX_BUFFER_SIZE = 255;
+int cursor = 0;
 void *memory;
+
+int allocate()
+{
+	int old_cursor = cursor;
+	cursor += 4;
+	return old_cursor;
+}
 
 int main(void)
 {
@@ -69,6 +77,13 @@ int main(void)
 			// Print hte value
 			value = *(int*)(memory + addr);
 			dprintf(fifo_out, "%d%c", value, 0);
+		}
+
+		else if (!strcmp(buffer, "alloc"))
+		{
+			// Allocate new memory and return it
+			addr = allocate();
+			dprintf(fifo_out, "%d%c", addr, 0);
 		}
 
 		else if (!strcmp(buffer, "write"))
