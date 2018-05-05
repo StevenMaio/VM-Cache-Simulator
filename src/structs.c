@@ -98,7 +98,8 @@ cache *init_cache()
  * the address stored in cache, and value is set to the value. If valid is 
  * not set, then prev_addr is set to -1.
  */
-int is_cached(*cache cache_set, int addr, int *prev_addr, int *value)
+int is_cached(cache *cache_set, int addr, int *prev_addr, int *value,
+		int *modified)
 {
 	if (!cache_set)
 	{
@@ -114,8 +115,13 @@ int is_cached(*cache cache_set, int addr, int *prev_addr, int *value)
 
 	line = *(cache_set + set_no);
 
-	if (line.valid)
+	if (line.valid & 1)
 	{
+		if (line.valid & 2)
+		{
+			*modified = 1;
+		}
+
 		if (line.tag == tag)
 		{
 			*value = line.value;
@@ -123,11 +129,11 @@ int is_cached(*cache cache_set, int addr, int *prev_addr, int *value)
 		}
 
 		*value = line.value;
-		*addr = addr_from_cache(set_no, line.tag);
+		*prev_addr = addr_from_cache(set_no, line.tag);
 		return 0;
 	}
 
-	*addr = -1;
+	*prev_addr = -1;
 
 	return 0;
 }
@@ -137,24 +143,24 @@ int is_cached(*cache cache_set, int addr, int *prev_addr, int *value)
  *
  * Returns a 0 on success, and a 1 on failure.
  */
-int set_cache(*cache cache_set, int addr, int value)
+int set_cache(cache *cache_set, int addr, int value)
 {
 	if (!cache_set)
 	{
 		return 1;
 	}
 
-	cache line;
+	cache *line;
 	int set_no, tag;
 
 	set_no = (addr >> 4) & 3;
 	tag = get_tag(addr);
 
-	line = *(cache_set + set_no);
+	line = cache_set + set_no;
 
-	line.valid = 1;
-	line.tag = tag;
-	line.value = value;
+	line->valid = 1;
+	line->tag = tag;
+	line->value = value;
 
 	return 0;
 }

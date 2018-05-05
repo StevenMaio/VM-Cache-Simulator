@@ -19,6 +19,10 @@ typedef struct procss_node {
 	struct procss_node *next;
 } process_node;
 
+/*
+ * Valid will have the 0th bit set if it's valid, and the 2s bit set
+ * if the value has been modified.
+ */
 typedef struct cash {
 	int valid;
 	int tag;
@@ -44,8 +48,8 @@ int get_tag(int addr);
  */
 cache *init_cache();
 
-int is_cached(*cache cache_set, int addr, int *value);
+int is_cached(cache *cache_set, int addr, int *prev_addr ,int *value, int *modified);
 
-int set_cache(*cache cache_set, int addr, int value);
+int set_cache(cache *cache_set, int addr, int value);
 
 #endif

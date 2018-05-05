@@ -30,7 +30,8 @@ int main(void)
 	// Initialize all the settings
 	char *buffer, *mem_buffer, *cursor, *args[MAX_ARGS];
 	process_node *pcursor;
-	int pid, addr, virt_addr, value, num_args, fifo_in, fifo_out, found;
+	int pid, addr, prev_addr, virt_addr, value, num_args, 
+		fifo_in, fifo_out, found, modified;
 	pthread_t tid;
 	pid_t child_pid;
 
@@ -221,9 +222,38 @@ int main(void)
 				continue;
 			}
 
-			// Output to memory, and then read from memory
+			// TODO: Check to see if the addr is cached
+			if (is_cached(cache_set, addr, &prev_addr, &value, &modified))
+			{
+				printf("cache hit\n");
+				printf("%d\n", value);
+				continue;
+			} 
+
+			// Access the address from 'main mempry'
+			printf("cache miss\n");
 			dprintf(fifo_out, "read %d\n%c", addr, 0);
 			read(fifo_in, mem_buffer, MAX_BUFFER_SIZE);
+
+			// TODO: Set the cache
+			if (prev_addr == -1)
+			{
+				// When the cachine line isn't valid
+				set_cache(cache_set, addr, atoi(mem_buffer));
+			}
+
+			else
+			{
+				// Handling when the line is valid
+				if (modified)	
+				{
+					// Write the new value into memory
+					dprintf(fifo_out, "write %d %d\n%c", prev_addr, value, 0);
+				}
+
+
+				set_cache(cache_set, addr, atoi(mem_buffer));
+			}
 
 			// TODO: Format the stuff
 			printf("%s\n", mem_buffer);
