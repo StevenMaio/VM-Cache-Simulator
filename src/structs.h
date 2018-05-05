@@ -39,6 +39,13 @@ page_entry *init_page_entry();
 
 int get_tag(int addr);
 
+/*
+ * Initializes a cache set
+ */
 cache *init_cache();
+
+int is_cached(*cache cache_set, int addr, int *value);
+
+int set_cache(*cache cache_set, int addr, int value);
 
 #endif

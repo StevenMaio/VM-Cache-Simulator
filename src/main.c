@@ -20,6 +20,7 @@ int num_threads = 0;
 int in_fd[2], out_fd[2];	// file descriptors
 int unalloc_mem_curs = 0;
 void *alloc_arr;
+cache *cache_set;
 
 process_node *head = NULL;
 
@@ -35,6 +36,7 @@ int main(void)
 
 	buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
 	mem_buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
+	cache_set = init_cache();
 	alloc_arr = malloc(1024/4);
 
 	// Open up the pipelin

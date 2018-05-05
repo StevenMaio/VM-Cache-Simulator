@@ -62,6 +62,17 @@ int get_tag(int addr)
 	return lower + upper;
 }
 
+int addr_from_cache(int set_no, int tag)
+{
+	int upper, lower;
+
+	lower = tag & 0xF;
+	upper = (tag & 0xF0) + (set_no << 2);
+	upper = upper << 2;
+
+	return lower + upper;
+}
+
 cache *init_cache()
 {
 	int i;
@@ -75,4 +86,75 @@ cache *init_cache()
 	}
 
 	return cache_set;
+}
+
+/*
+ * Checks to see if the address is cached inside the cache set.
+ * If it is, then the value is placed into address of value, if value
+ * is not null.
+ *
+ * Returns 1 if the addr is cached and sets value to the value in the cache.
+ * If the addr is cached, then if the line is valid, the prev_addr is set to 
+ * the address stored in cache, and value is set to the value. If valid is 
+ * not set, then prev_addr is set to -1.
+ */
+int is_cached(*cache cache_set, int addr, int *prev_addr, int *value)
+{
+	if (!cache_set)
+	{
+		return 0;
+	}
+
+	cache line;
+	int set_no, tag;
+	
+	// get the offset and tag of the address
+	set_no = (addr >> 4) & 3;
+	tag = get_tag(addr);
+
+	line = *(cache_set + set_no);
+
+	if (line.valid)
+	{
+		if (line.tag == tag)
+		{
+			*value = line.value;
+			return 1;
+		}
+
+		*value = line.value;
+		*addr = addr_from_cache(set_no, line.tag);
+		return 0;
+	}
+
+	*addr = -1;
+
+	return 0;
+}
+
+/*
+ * Stores the correct address and value in the cache.
+ *
+ * Returns a 0 on success, and a 1 on failure.
+ */
+int set_cache(*cache cache_set, int addr, int value)
+{
+	if (!cache_set)
+	{
+		return 1;
+	}
+
+	cache line;
+	int set_no, tag;
+
+	set_no = (addr >> 4) & 3;
+	tag = get_tag(addr);
+
+	line = *(cache_set + set_no);
+
+	line.valid = 1;
+	line.tag = tag;
+	line.value = value;
+
+	return 0;
 }
