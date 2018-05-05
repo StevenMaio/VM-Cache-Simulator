@@ -51,3 +51,28 @@ page_entry *init_page_entry()
 
 	return pe;
 }
+
+int get_tag(int addr)
+{
+	int upper, lower;
+
+	lower = addr & 0xF;
+	upper = (addr >> 2) & 0xF0;
+
+	return lower + upper;
+}
+
+cache *init_cache()
+{
+	int i;
+	cache *cache_set = (cache*) malloc(sizeof(cache) * CACHE_SIZE);
+	cache cursor;
+
+	// set the valid bit of each one thing to 0
+	for (i = 0; i < CACHE_SIZE; i++)
+	{
+		(cache_set + i)->valid = 0;
+	}
+
+	return cache_set;
+}
