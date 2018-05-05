@@ -140,7 +140,7 @@ int main(void)
 				continue;
 
 			// Call alloc in mem c
-			dprintf(fifo_out, "alloc\n%c", 0);
+			dprintf(fifo_out, "alloc %d\n%c", pid, 0);
 			read(fifo_in, mem_buffer, MAX_BUFFER_SIZE);
 			addr = atoi(mem_buffer);
 
@@ -176,7 +176,9 @@ int main(void)
 			if (!kill_process(&head, pid))
 			{
 				num_threads--;
+				dprintf(fifo_out, "dealloc %d\n%c", pid, 0);
 			}
+
 
 			// TODO: Handle if an error occured
 		}
@@ -262,6 +264,7 @@ int main(void)
 			}
 
 			printf("%d\n", value);
+			
 		}
 
 		// TODO: Implement this correctly
@@ -353,6 +356,11 @@ int main(void)
 
 	close(fifo_in);
 	close(fifo_out);
+
+	if (head)
+		free(head);
+	if (cache_set)
+		free(cache_set);
 	if (buffer)
 		free(buffer);
 

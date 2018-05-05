@@ -15,22 +15,56 @@ int allocated[MAX_ALLOC];
 int cursor = 0;
 void *memory;
 
-/*
- * This function will allocate memory
- */
-int allocate()
+void deallocate(int pid)
 {
-	int old_cursor = cursor;
-	cursor = (cursor + 4) % MAX_SIZE;
+	int i;
+	pid = pid << 1;
 
-	return old_cursor;
+	for (i = 0; i < MAX_ALLOC; i++)
+	{
+		if (pid == (allocated[i] & -2))
+		{
+			allocated[i] = 0;
+		}
+	}
+}
+
+/*
+ * This function will allocate memory. If it returns a positive integer, then
+ * this integer represents a valid address.
+ *
+ * If this returns -1, then there does not exist any free space.
+ *
+ */
+int allocate(int pid)
+{
+	int temp, position;
+	position = cursor;
+
+	// Look for unallocated space 
+	while (allocated[cursor/4] & 1)
+	{
+		cursor = (cursor + 4) % MAX_SIZE;
+
+		if (position == cursor)
+		{
+			return -1;
+		}
+	}
+
+	// Set the bit to being allocated
+	allocated[cursor/4] = 1 + (pid << 1);
+	temp = cursor;
+
+	cursor = (cursor + 4) % MAX_SIZE;
+	return temp;
 }
 
 int main(void)
 {
 	// main loop ting
 	char *buffer, *cursor, *args[MAX_ARGS];
-	int addr, value, loop, num_args, i, fifo_in, fifo_out;
+	int addr, value, loop, num_args, i, fifo_in, fifo_out, pid;
 
 	// Initialize main memory (1024 bytes of mem)
 	memory = calloc(1024, 1);
@@ -93,9 +127,20 @@ int main(void)
 
 		else if (!strcmp(buffer, "alloc"))
 		{
+			pid = atoi(args[1]);
+
 			// Allocate new memory and return it
-			addr = allocate();
+			addr = allocate(pid);
 			dprintf(fifo_out, "%d%c", addr, 0);
+		}
+
+		else if (!strcmp(buffer, "dealloc"))
+		{
+			pid = atoi(args[1]);
+
+			// Allocate new memory and return it
+			deallocate(pid);
+			dprintf(STDOUT_FILENO, "Memory freed\n%c", 0);
 		}
 
 		else if (!strcmp(buffer, "write"))
