@@ -234,6 +234,7 @@ int kill_process(process_node **head, pthread_t tid)
 			free_page_table(temp);
 			free(temp);
 			success == 1;
+			break;
 		}
 
 		cursor = cursor->next;

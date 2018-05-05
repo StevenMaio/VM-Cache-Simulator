@@ -100,6 +100,12 @@ int main(void)
 			tid = (pthread_t) strtoul(args[1], NULL, 10);
 			pcursor = head;
 
+			if (num_args != 2)
+			{
+				printf("Error : incorrect number of arguments\n");
+				continue;
+			}
+
 			// Restart the loop if there are no cursors
 			if (!head)
 				continue;
@@ -120,6 +126,12 @@ int main(void)
 		{
 			tid = (pthread_t) strtoul(args[1], NULL, 10);
 			pcursor = head;
+
+			if (num_args != 2)
+			{
+				printf("Error : incorrect number of arguments\n");
+				continue;
+			}
 
 			// Restart the loop if there are no cursors
 			if (head == NULL)
@@ -144,6 +156,12 @@ int main(void)
 			tid = (pthread_t) strtoul(args[1], NULL, 10);
 			pcursor = head;
 
+			if (num_args != 2)
+			{
+				printf("Error : incorrect number of arguments\n");
+				continue;
+			}
+
 			// Restart the loop if there are no cursors
 			if (head == NULL)
 				continue;
@@ -161,6 +179,12 @@ int main(void)
 			tid = (pthread_t) strtoul(args[1], NULL, 10);
 			virt_addr = atoi(args[2]);
 			pcursor = head;
+
+			if (num_args != 3)
+			{
+				printf("Error : incorrect number of arguments\n");
+				continue;
+			}
 
 			// Check to see if the address is aligned
 			if (virt_addr%4)
@@ -210,6 +234,12 @@ int main(void)
 			virt_addr = atoi(args[2]);
 			value = atoi(args[3]);
 			pcursor = head;
+
+			if (num_args != 4)
+			{
+				printf("Error : incorrect number of arguments\n");
+				continue;
+			}
 
 			// Check to see if the address is aligned 
 			if (virt_addr%4)
