@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include "structs.h"
+#include "utils.h"
 
 // I can probably change this later
 #define MAX_ARGS 10
@@ -20,14 +21,16 @@ int in_fd[2], out_fd[2];	// file descriptors
 int unalloc_mem_curs = 0;
 void *alloc_arr;
 
-struct thread_node *head = NULL;
+process_node *head = NULL;
 
 // Main thread
 int main(void) 
 {
 	// Initialize all the settings
 	char *buffer, *mem_buffer, *cursor, *args[MAX_ARGS];
-	int pid, addr, value, num_args, fifo_in, fifo_out;
+	process_node *pcursor;
+	int pid, addr, value, num_args, fifo_in, fifo_out, found;
+	pthread_t tid;
 	pid_t child_pid;
 
 	buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
@@ -53,6 +56,7 @@ int main(void)
 		args[0] = buffer;
 		cursor = buffer;
 		num_args = 1;
+		found = 0;
 
 		// Check to see if cursor is pointing to a null character
 		if (*cursor == 0)
@@ -66,15 +70,91 @@ int main(void)
 
 		if (!strcmp(buffer, "create"))
 		{
+			if (!init_process(&head))
+			{
+				// Print out the ID of the thread that was just created
+				pcursor = head;	
 
+				while (pcursor->next)
+					pcursor = pcursor->next;
+
+				printf("Process created: %lu\n", (unsigned long) pcursor->pid);
+			}
+		}
+
+		else if (!strcmp(buffer, "list"))
+		{
+			list(head);
+		}
+
+		else if (!strcmp(buffer, "mem"))
+		{
+			tid = (pthread_t) strtoul(args[1], NULL, 10);
+			pcursor = head;
+
+			// Restart the loop if there are no cursors
+			if (!head)
+				continue;
+
+			do
+			{
+				if (pcursor->pid == tid)
+				{
+					mem_list(pcursor);
+					break;
+				}
+
+				pcursor = pcursor->next;
+			} while (pcursor);
+		}
+
+		else if (!strcmp(buffer, "allocate"))
+		{
+			tid = (pthread_t) strtoul(args[1], NULL, 10);
+			pcursor = head;
+
+			// Restart the loop if there are no cursors
+			if (head == NULL)
+				continue;
+
+			do
+			{
+				if (pcursor->pid == tid)
+				{
+					cse320_malloc(pcursor, &unalloc_mem_curs);
+					break;
+				}
+
+				pcursor = pcursor->next;
+			} while (pcursor);
 		}
 
 		// TODO: Implement this correctly in the future
-		if (!strcmp(buffer, "read"))
+		else if (!strcmp(buffer, "read"))
 		{
-			addr = atoi(args[1]);
+			tid = (pthread_t) strtoul(args[1], NULL, 10);
+			addr = atoi(args[2]);
+			pcursor = head;
 
-			// TODO: Check for errors
+			// Restart the loop if there are no cursors
+			if (head == NULL)
+				continue;
+
+			do
+			{
+				if (pcursor->pid == tid)
+				{
+					addr = cse320_virt_to_phys(pcursor, addr);
+					found = 1;
+					break;
+				}
+
+				pcursor = pcursor->next;
+			} while (pcursor);
+
+			// Restart the loop if there are no cursors
+			if (!found)
+				continue;
 
 			// Output to memory, and then read from memory
 			dprintf(fifo_out, "read %d\n%c", addr, 0);
@@ -87,8 +167,30 @@ int main(void)
 		// TODO: Implement this correctly
 		else if (!strcmp(buffer, "write"))
 		{
-			addr = atoi(args[1]);
-			value = atoi(args[2]);
+			tid = (pthread_t) strtoul(args[1], NULL, 10);
+			addr = atoi(args[2]);
+			value = atoi(args[3]);
+			pcursor = head;
+
+			// Restart the loop if there are no cursors
+			if (head == NULL)
+				continue;
+
+			do
+			{
+				if (pcursor->pid == tid)
+				{
+					addr = cse320_virt_to_phys(pcursor, addr);
+					found = 1;
+					break;
+				}
+
+				pcursor = pcursor->next;
+			} while (pcursor);
+
+			// Restart the loop if there are no cursors
+			if (!found)
+				continue;
 
 			dprintf(fifo_out, "write %d %d\n%c", addr, value, 0);
 		}

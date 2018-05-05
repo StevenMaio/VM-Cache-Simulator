@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include "structs.h"
 
+// Array for keeping track of allocated and unallocated addresses
+//void *mem_alloc_arr = calloc(256, 1);
+
 /*
  * Thread protocol. At the moment, this doesn't do anything interesting.
  */
@@ -20,7 +23,7 @@ void list(process_node *head)
 	if (head == NULL)
 		return;
 
-	printf("Thread id: %lu\n", (unsigned long) head->pid);
+	printf("Process ID: %lu\n", (unsigned long) head->pid);
 	list(head->next);
 }
 
@@ -127,7 +130,7 @@ int cse320_malloc(process_node *node, int *unalloc_cursor) {
 			cursor = pt->entries[i];
 
 			cursor->addr[0] = *unalloc_cursor;
-			*(unalloc_cursor) += 4;
+			*(unalloc_cursor) = (*unalloc_cursor  + 4)%1024;
 			found = 1;
 			break;
 		}
@@ -139,7 +142,7 @@ int cse320_malloc(process_node *node, int *unalloc_cursor) {
 			if (cursor->addr[j] == -1)
 			{
 				cursor->addr[j] = *unalloc_cursor;
-				*(unalloc_cursor) += 4;
+				*(unalloc_cursor) = (*unalloc_cursor  + 4)%1024;
 				found = 1;
 				break;
 			}

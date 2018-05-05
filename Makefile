@@ -2,13 +2,16 @@ THREAD = -lpthread -lrt
 CC = gcc -g
 MAIN_TARGET = main
 MAIN_SRC = src/main.c
+UTIL_SRC = src/utils.c src/structs.c
 MEM_TARGET = mem
 MEM_SRC = src/mem.c
 FIFO_SRC = create_fifo.c
 FIFO_TARGET = fifo
 
-all: clean mem fifo_in fifo_out
-	$(CC) $(MAIN_SRC) $(THREAD) -o $(MAIN_TARGET)
+all: main
+
+main: clean mem fifo_in fifo_out
+	$(CC) $(UTIL_SRC) $(MAIN_SRC) $(THREAD) -o $(MAIN_TARGET)
 
 mem: clean
 	$(CC) $(MEM_SRC) $(THREAD) -o $(MEM_TARGET)
