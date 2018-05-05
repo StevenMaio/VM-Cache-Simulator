@@ -2,8 +2,11 @@
 #define UTILS_H
 
 #include "structs.h"
+#include <pthread.h>
 
 int init_process(process_node **head);
+
+int kill_process(process_node **head, pthread_t tid);
 
 void list(process_node *head);
 

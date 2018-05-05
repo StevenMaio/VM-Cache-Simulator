@@ -21,7 +21,7 @@ typedef struct procss_node {
 /*
  * This function frees the page table and all of its second layer tables
  */
-int free_page_table(process_node *process_node);
+void free_page_table(process_node *process_node);
 
 /* 
  * Initialize a page table entry with all of the address set to null

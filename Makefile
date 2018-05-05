@@ -1,4 +1,5 @@
-THREAD = -lpthread -lrt
+THREAD = -pthread
+B = -lrt
 CC = gcc -g
 MAIN_TARGET = main
 MAIN_SRC = src/main.c

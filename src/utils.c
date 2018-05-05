@@ -1,7 +1,9 @@
 #include <pthread.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "structs.h"
+#include <signal.h>
 
 // Array for keeping track of allocated and unallocated addresses
 //void *mem_alloc_arr = calloc(256, 1);
@@ -12,7 +14,8 @@
 void *thread_func(void* vargp)
 {
 	// Loop infinitely
-	while(1);
+	while(1)
+		sleep(2);
 }
 
 /*
@@ -186,4 +189,61 @@ int cse320_virt_to_phys(process_node *node, int address) {
 	{
 		return -1;
 	}
+}
+
+/*
+ * Kills a process
+ *
+ * TODO: Implement deallocating of memory
+ */
+int kill_process(process_node **head, pthread_t tid)
+{
+	if (*head == NULL)
+	{
+		printf("No processes running\n");
+		return 1;
+	}
+
+	process_node *cursor, *temp;
+	cursor = *head;
+	int success = 0;
+
+	if (cursor->pid == tid)
+	{
+		temp = cursor;
+		*head = cursor->next;
+		free_page_table(cursor);
+		free(cursor);
+
+		success = 1;
+	} 
+	
+	else if (cursor->next == NULL)
+	{
+		printf("Process not found\n");
+		return 1;
+	}
+
+	while (cursor->next && !success)
+	{
+		temp = cursor->next;
+
+		if (temp->pid == tid)
+		{
+			cursor->next = temp->next;
+			free_page_table(temp);
+			free(temp);
+			success == 1;
+		}
+
+		cursor = cursor->next;
+	}
+
+	if (success)
+	{
+		pthread_cancel(tid);
+		pthread_join(tid, NULL);
+	}
+
+	return 0;
 }

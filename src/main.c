@@ -95,27 +95,6 @@ int main(void)
 			list(head);
 		}
 
-		else if (!strcmp(buffer, "kill"))
-		{
-			tid = (pthread_t) strtoul(args[1], NULL, 10);
-			pcursor = head;
-
-			// Restart the loop if there are no cursors
-			if (!head)
-				continue;
-
-			do
-			{
-				if (pcursor->pid == tid)
-				{
-					mem_list(pcursor);
-					break;
-				}
-
-				pcursor = pcursor->next;
-			} while (pcursor);
-		}
-
 		else if (!strcmp(buffer, "mem"))
 		{
 			tid = (pthread_t) strtoul(args[1], NULL, 10);
@@ -158,6 +137,23 @@ int main(void)
 			} while (pcursor);
 
 			// TODO: Check to see if an error occured
+		}
+
+		else if (!strcmp(buffer, "kill"))
+		{
+			tid = (pthread_t) strtoul(args[1], NULL, 10);
+			pcursor = head;
+
+			// Restart the loop if there are no cursors
+			if (head == NULL)
+				continue;
+
+			if (!kill_process(&head, tid))
+			{
+				num_threads--;
+			}
+
+			// TODO: Handle if an error occured
 		}
 
 		else if (!strcmp(buffer, "read"))

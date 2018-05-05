@@ -4,7 +4,7 @@
 /*
  * This function frees the page table and all of its second layer tables
  */
-int free_page_table(process_node *process) {
+void free_page_table(process_node *process) {
 	page_table *pt = process->pt;
 	page_entry *sec_lvl;
 
