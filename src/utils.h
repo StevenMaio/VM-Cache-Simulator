@@ -4,15 +4,13 @@
 #include "structs.h"
 #include <pthread.h>
 
-int init_process(process_node **head);
+int init_process(process_node **head, int pid);
 
 int kill_process(process_node **head, pthread_t tid);
 
 void list(process_node *head);
 
 void mem_list(process_node *process_node);
-
-int init_process(process_node **head);
 
 int cse320_malloc_helper(process_node *node, int addr);
 

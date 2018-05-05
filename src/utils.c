@@ -33,11 +33,9 @@ void list(process_node *head)
 void mem_list(process_node *process)
 {
 	int i, j, virt_addr, address;
-	pthread_t pid;
 	page_table pt;
 	page_entry *cursor;
 
-	pid = process->pid;
 	pt = *(process->pt);
 
 	for (i = 0; i < PT_ENTRIES; i++)
@@ -65,15 +63,15 @@ void mem_list(process_node *process)
 	}
 }
 
-int init_process(process_node **head)
+int init_process(process_node **head, int pid)
 {
 	// create a new process
 	int i;
-	pthread_t pid;
+	pthread_t tid;
 	process_node *node, *cursor;
 
 	// TODO: Create a new thread
-	if (pthread_create(&pid, NULL, thread_func, NULL)) {
+	if (pthread_create(&tid, NULL, thread_func, NULL)) {
 		// IF an error occurred
 		printf("An error occurred creating a new process\n");
 		return 1;
@@ -81,6 +79,7 @@ int init_process(process_node **head)
 	
 	node = (process_node*) malloc(sizeof(process_node));
 	node->pt = init_page_table();
+	node->tid = tid;
 	node->pid = pid;
 	node->next = NULL;
 
@@ -194,7 +193,7 @@ int cse320_virt_to_phys(process_node *node, int address) {
  *
  * TODO: Implement deallocating of memory
  */
-int kill_process(process_node **head, pthread_t tid)
+int kill_process(process_node **head, int pid)
 {
 	if (*head == NULL)
 	{
@@ -204,12 +203,15 @@ int kill_process(process_node **head, pthread_t tid)
 
 	process_node *cursor, *temp;
 	cursor = *head;
+	pthread_t tid;
 	int success = 0;
 
-	if (cursor->pid == tid)
+	if (cursor->pid == pid)
 	{
 		temp = cursor;
 		*head = cursor->next;
+		tid = cursor->tid;
+
 		free_page_table(cursor);
 		free(cursor);
 
@@ -226,9 +228,11 @@ int kill_process(process_node **head, pthread_t tid)
 	{
 		temp = cursor->next;
 
-		if (temp->pid == tid)
+		if (temp->pid == pid)
 		{
 			cursor->next = temp->next;
+			tid = temp->tid;
+
 			free_page_table(temp);
 			free(temp);
 			success == 1;

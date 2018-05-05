@@ -19,7 +19,6 @@ int const MAX_BUFFER_SIZE = 255;
 int num_threads = 0;
 int in_fd[2], out_fd[2];	// file descriptors
 int unalloc_mem_curs = 0;
-void *alloc_arr;
 cache *cache_set;
 
 process_node *head = NULL;
@@ -31,14 +30,13 @@ int main(void)
 	char *buffer, *mem_buffer, *cursor, *args[MAX_ARGS];
 	process_node *pcursor;
 	int pid, addr, prev_addr, virt_addr, value, num_args, 
-		fifo_in, fifo_out, found, modified, prev_value;
-	pthread_t tid;
+		fifo_in, fifo_out, found, modified, prev_value, id_gen;
 	pid_t child_pid;
 
 	buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
 	mem_buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
 	cache_set = init_cache();
-	alloc_arr = malloc(1024/4);
+	id_gen = 0;
 
 	// Open up the pipelin
 	fifo_out = open("fifo_1", O_WRONLY);
@@ -80,10 +78,11 @@ int main(void)
 				continue;
 			}
 
-			if (!init_process(&head))
+			if (!init_process(&head, id_gen))
 			{
 				// Print out the ID of the thread that was just created
 				num_threads++;
+				id_gen++;
 				pcursor = head;	
 
 				while (pcursor->next)
@@ -100,7 +99,7 @@ int main(void)
 
 		else if (!strcmp(buffer, "mem"))
 		{
-			tid = (pthread_t) strtoul(args[1], NULL, 10);
+			pid = atoi(args[1]);
 			pcursor = head;
 
 			if (num_args != 2)
@@ -115,7 +114,7 @@ int main(void)
 
 			do
 			{
-				if (pcursor->pid == tid)
+				if (pcursor->pid == pid)
 				{
 					mem_list(pcursor);
 					break;
@@ -127,7 +126,7 @@ int main(void)
 
 		else if (!strcmp(buffer, "allocate"))
 		{
-			tid = (pthread_t) strtoul(args[1], NULL, 10);
+			pid = atoi(args[1]);
 			pcursor = head;
 
 			if (num_args != 2)
@@ -147,7 +146,7 @@ int main(void)
 
 			do
 			{
-				if (pcursor->pid == tid)
+				if (pcursor->pid == pid)
 				{
 					cse320_malloc_helper(pcursor, addr);
 					break;
@@ -161,7 +160,7 @@ int main(void)
 
 		else if (!strcmp(buffer, "kill"))
 		{
-			tid = (pthread_t) strtoul(args[1], NULL, 10);
+			pid = atoi(args[1]);
 			pcursor = head;
 
 			if (num_args != 2)
@@ -174,7 +173,7 @@ int main(void)
 			if (head == NULL)
 				continue;
 
-			if (!kill_process(&head, tid))
+			if (!kill_process(&head, pid))
 			{
 				num_threads--;
 			}
@@ -184,7 +183,7 @@ int main(void)
 
 		else if (!strcmp(buffer, "read"))
 		{
-			tid = (pthread_t) strtoul(args[1], NULL, 10);
+			pid = atoi(args[1]);
 			virt_addr = atoi(args[2]);
 			pcursor = head;
 
@@ -207,7 +206,7 @@ int main(void)
 
 			do
 			{
-				if (pcursor->pid == tid)
+				if (pcursor->pid == pid)
 				{
 					addr = cse320_virt_to_phys(pcursor, virt_addr);
 					found = 1;
@@ -268,7 +267,7 @@ int main(void)
 		// TODO: Implement this correctly
 		else if (!strcmp(buffer, "write"))
 		{
-			tid = (pthread_t) strtoul(args[1], NULL, 10);
+			pid = atoi(args[1]);
 			virt_addr = atoi(args[2]);
 			value = atoi(args[3]);
 			pcursor = head;
@@ -292,7 +291,7 @@ int main(void)
 
 			do
 			{
-				if (pcursor->pid == tid)
+				if (pcursor->pid == pid)
 				{
 					addr = cse320_virt_to_phys(pcursor, virt_addr);
 					found = 1;

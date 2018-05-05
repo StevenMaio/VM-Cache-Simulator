@@ -7,16 +7,22 @@
 #include <unistd.h>
 
 #define MAX_ARGS 10
+#define MAX_ALLOC 256
 
 int const MAX_SIZE = 1024;
 int const MAX_BUFFER_SIZE = 255;
+int allocated[MAX_ALLOC];
 int cursor = 0;
 void *memory;
 
+/*
+ * This function will allocate memory
+ */
 int allocate()
 {
 	int old_cursor = cursor;
-	cursor += 4;
+	cursor = (cursor + 4) % MAX_SIZE;
+
 	return old_cursor;
 }
 
@@ -30,6 +36,12 @@ int main(void)
 	memory = calloc(1024, 1);
 	buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
 	loop = 1;
+
+	// Set the allocaton flag to 0 for everything
+	for (i = 0; i < MAX_ALLOC; i++)
+	{
+		allocated[i] = 0;
+	}
 
 	fifo_in = open("fifo_1", O_RDONLY);
 	fifo_out = open("fifo_2", O_WRONLY);
