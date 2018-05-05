@@ -239,7 +239,7 @@ int main(void)
 			if (prev_addr == -1)
 			{
 				// When the cachine line isn't valid
-				set_cache(cache_set, addr, atoi(mem_buffer));
+				set_cache(cache_set, addr, atoi(mem_buffer), 0);
 			}
 
 			else
@@ -252,7 +252,7 @@ int main(void)
 				}
 
 
-				set_cache(cache_set, addr, atoi(mem_buffer));
+				set_cache(cache_set, addr, atoi(mem_buffer), 0);
 			}
 
 			// TODO: Format the stuff

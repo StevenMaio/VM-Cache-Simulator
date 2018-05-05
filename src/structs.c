@@ -139,11 +139,12 @@ int is_cached(cache *cache_set, int addr, int *prev_addr, int *value,
 }
 
 /*
- * Stores the correct address and value in the cache.
+ * Stores the correct address and value in the cache. Set mod_flag to 1, if
+ * the value is already cached.
  *
  * Returns a 0 on success, and a 1 on failure.
  */
-int set_cache(cache *cache_set, int addr, int value)
+int set_cache(cache *cache_set, int addr, int value, int mod_flag)
 {
 	if (!cache_set)
 	{
@@ -158,7 +159,7 @@ int set_cache(cache *cache_set, int addr, int value)
 
 	line = cache_set + set_no;
 
-	line->valid = 1;
+	line->valid = 1 + mod_flag*2;
 	line->tag = tag;
 	line->value = value;
 

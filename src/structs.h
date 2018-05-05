@@ -50,6 +50,6 @@ cache *init_cache();
 
 int is_cached(cache *cache_set, int addr, int *prev_addr ,int *value, int *modified);
 
-int set_cache(cache *cache_set, int addr, int value);
+int set_cache(cache *cache_set, int addr, int value, int mod_flag);
 
 #endif
