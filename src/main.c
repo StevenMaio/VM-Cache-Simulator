@@ -29,7 +29,7 @@ int main(void)
 	// Initialize all the settings
 	char *buffer, *mem_buffer, *cursor, *args[MAX_ARGS];
 	process_node *pcursor;
-	int pid, addr, value, num_args, fifo_in, fifo_out, found;
+	int pid, addr, virt_addr, value, num_args, fifo_in, fifo_out, found;
 	pthread_t tid;
 	pid_t child_pid;
 
@@ -70,9 +70,17 @@ int main(void)
 
 		if (!strcmp(buffer, "create"))
 		{
+			// Do not allow the user to create more than 4 processes
+			if (num_threads == 4)
+			{
+				printf("Cannot create more processes\n");
+				continue;
+			}
+
 			if (!init_process(&head))
 			{
 				// Print out the ID of the thread that was just created
+				num_threads++;
 				pcursor = head;	
 
 				while (pcursor->next)
@@ -85,6 +93,27 @@ int main(void)
 		else if (!strcmp(buffer, "list"))
 		{
 			list(head);
+		}
+
+		else if (!strcmp(buffer, "kill"))
+		{
+			tid = (pthread_t) strtoul(args[1], NULL, 10);
+			pcursor = head;
+
+			// Restart the loop if there are no cursors
+			if (!head)
+				continue;
+
+			do
+			{
+				if (pcursor->pid == tid)
+				{
+					mem_list(pcursor);
+					break;
+				}
+
+				pcursor = pcursor->next;
+			} while (pcursor);
 		}
 
 		else if (!strcmp(buffer, "mem"))
@@ -127,14 +156,22 @@ int main(void)
 
 				pcursor = pcursor->next;
 			} while (pcursor);
+
+			// TODO: Check to see if an error occured
 		}
 
-		// TODO: Implement this correctly in the future
 		else if (!strcmp(buffer, "read"))
 		{
 			tid = (pthread_t) strtoul(args[1], NULL, 10);
-			addr = atoi(args[2]);
+			virt_addr = atoi(args[2]);
 			pcursor = head;
+
+			// Check to see if the address is aligned
+			if (virt_addr%4)
+			{
+				printf("Error : requested address out of alignment\n");
+				continue;
+			}
 
 			// Restart the loop if there are no cursors
 			if (head == NULL)
@@ -144,7 +181,7 @@ int main(void)
 			{
 				if (pcursor->pid == tid)
 				{
-					addr = cse320_virt_to_phys(pcursor, addr);
+					addr = cse320_virt_to_phys(pcursor, virt_addr);
 					found = 1;
 					break;
 				}
@@ -155,6 +192,12 @@ int main(void)
 			// Restart the loop if there are no cursors
 			if (!found)
 				continue;
+
+			if (addr == -1)
+			{
+				printf("Error : requested address hasn't been allocated\n");
+				continue;
+			}
 
 			// Output to memory, and then read from memory
 			dprintf(fifo_out, "read %d\n%c", addr, 0);
@@ -168,9 +211,16 @@ int main(void)
 		else if (!strcmp(buffer, "write"))
 		{
 			tid = (pthread_t) strtoul(args[1], NULL, 10);
-			addr = atoi(args[2]);
+			virt_addr = atoi(args[2]);
 			value = atoi(args[3]);
 			pcursor = head;
+
+			// Check to see if the address is aligned 
+			if (virt_addr%4)
+			{
+				printf("Error : requested address out of alignment\n");
+				continue;
+			}
 
 			// Restart the loop if there are no cursors
 			if (head == NULL)
@@ -180,7 +230,7 @@ int main(void)
 			{
 				if (pcursor->pid == tid)
 				{
-					addr = cse320_virt_to_phys(pcursor, addr);
+					addr = cse320_virt_to_phys(pcursor, virt_addr);
 					found = 1;
 					break;
 				}
@@ -191,6 +241,12 @@ int main(void)
 			// Restart the loop if there are no cursors
 			if (!found)
 				continue;
+
+			if (addr == -1)
+			{
+				printf("Error : requested address hasn't been allocated\n");
+				continue;
+			}
 
 			dprintf(fifo_out, "write %d %d\n%c", addr, value, 0);
 		}

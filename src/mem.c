@@ -56,19 +56,19 @@ int main(void)
 
 			if (addr%4)
 			{
-				dprintf(fifo_out, "Error : requested address out of alignment\n");
+				dprintf(STDOUT_FILENO, "Error : requested address out of alignment\n");
 				continue;
 			}
 
 			else if (addr < 0 || addr >= 1024)
 			{
-				dprintf(fifo_out, "Error : address out of range\n");
+				dprintf(STDOUT_FILENO, "Error : address out of range\n");
 				continue;
 			}
 
 			// Print hte value
 			value = *(int*)(memory + addr);
-			dprintf(fifo_out, "%d", value);
+			dprintf(fifo_out, "%d%c", value, 0);
 		}
 
 		else if (!strcmp(buffer, "write"))
