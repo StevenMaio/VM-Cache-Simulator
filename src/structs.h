@@ -14,9 +14,9 @@ typedef struct first_lvl_pt_entry {
 } page_table;
 
 typedef struct procss_node {
-	int pid;
 	pthread_t tid;
 	page_table *pt;
+	int pid;
 	struct procss_node *next;
 } process_node;
 

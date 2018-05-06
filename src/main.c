@@ -31,7 +31,7 @@ int main(void)
 	process_node *pcursor;
 	int pid, addr, prev_addr, virt_addr, value, num_args, 
 		fifo_in, fifo_out, found, modified, prev_value, id_gen;
-	pid_t child_pid;
+	pthread_t tid;
 
 	buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
 	mem_buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
@@ -88,7 +88,7 @@ int main(void)
 				while (pcursor->next)
 					pcursor = pcursor->next;
 
-				printf("Process created: %lu\n", (unsigned long) pcursor->pid);
+				printf("Process created: %lu\n", (unsigned long) pcursor->tid);
 			}
 		}
 
@@ -99,7 +99,7 @@ int main(void)
 
 		else if (!strcmp(buffer, "mem"))
 		{
-			pid = atoi(args[1]);
+			tid = strtoul(args[1], NULL, 10);
 			pcursor = head;
 
 			if (num_args != 2)
@@ -114,7 +114,7 @@ int main(void)
 
 			do
 			{
-				if (pcursor->pid == pid)
+				if (pcursor->tid == tid)
 				{
 					mem_list(pcursor);
 					break;
@@ -126,7 +126,7 @@ int main(void)
 
 		else if (!strcmp(buffer, "allocate"))
 		{
-			pid = atoi(args[1]);
+			tid = strtoul(args[1], NULL, 10);
 			pcursor = head;
 
 			if (num_args != 2)
@@ -139,6 +139,8 @@ int main(void)
 			if (head == NULL)
 				continue;
 
+			// TODO: Search the processes to get the pid
+
 			// Call alloc in mem c
 			dprintf(fifo_out, "alloc %d\n%c", pid, 0);
 			read(fifo_in, mem_buffer, MAX_BUFFER_SIZE);
@@ -146,7 +148,7 @@ int main(void)
 
 			do
 			{
-				if (pcursor->pid == pid)
+				if (pcursor->tid == tid)
 				{
 					cse320_malloc_helper(pcursor, addr);
 					break;
@@ -160,7 +162,7 @@ int main(void)
 
 		else if (!strcmp(buffer, "kill"))
 		{
-			pid = atoi(args[1]);
+			tid = strtoul(args[1], NULL, 10);
 			pcursor = head;
 
 			if (num_args != 2)
@@ -173,7 +175,7 @@ int main(void)
 			if (head == NULL)
 				continue;
 
-			if (!kill_process(&head, pid))
+			if (!kill_process(&head, tid, &pid))
 			{
 				num_threads--;
 				dprintf(fifo_out, "dealloc %d\n%c", pid, 0);
@@ -185,7 +187,7 @@ int main(void)
 
 		else if (!strcmp(buffer, "read"))
 		{
-			pid = atoi(args[1]);
+			tid = strtoul(args[1], NULL, 10);
 			virt_addr = atoi(args[2]);
 			pcursor = head;
 
@@ -208,7 +210,7 @@ int main(void)
 
 			do
 			{
-				if (pcursor->pid == pid)
+				if (pcursor->tid == tid)
 				{
 					addr = cse320_virt_to_phys(pcursor, virt_addr);
 					found = 1;
@@ -270,7 +272,7 @@ int main(void)
 		// TODO: Implement this correctly
 		else if (!strcmp(buffer, "write"))
 		{
-			pid = atoi(args[1]);
+			tid = strtoul(args[1], NULL, 10);
 			virt_addr = atoi(args[2]);
 			value = atoi(args[3]);
 			pcursor = head;
@@ -294,7 +296,7 @@ int main(void)
 
 			do
 			{
-				if (pcursor->pid == pid)
+				if (pcursor->tid == tid)
 				{
 					addr = cse320_virt_to_phys(pcursor, virt_addr);
 					found = 1;

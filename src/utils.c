@@ -26,7 +26,7 @@ void list(process_node *head)
 	if (head == NULL)
 		return;
 
-	printf("Process ID: %lu\n", (unsigned long) head->pid);
+	printf("Process ID: %lu\n", (unsigned long) head->tid);
 	list(head->next);
 }
 
@@ -193,7 +193,7 @@ int cse320_virt_to_phys(process_node *node, int address) {
  *
  * TODO: Implement deallocating of memory
  */
-int kill_process(process_node **head, int pid)
+int kill_process(process_node **head, pthread_t tid, int *pid)
 {
 	if (*head == NULL)
 	{
@@ -203,14 +203,13 @@ int kill_process(process_node **head, int pid)
 
 	process_node *cursor, *temp;
 	cursor = *head;
-	pthread_t tid;
 	int success = 0;
 
-	if (cursor->pid == pid)
+	if (cursor->tid == tid)
 	{
 		temp = cursor;
 		*head = cursor->next;
-		tid = cursor->tid;
+		*pid = cursor->pid;
 
 		free_page_table(cursor);
 		free(cursor);
@@ -228,10 +227,10 @@ int kill_process(process_node **head, int pid)
 	{
 		temp = cursor->next;
 
-		if (temp->pid == pid)
+		if (temp->tid == tid)
 		{
 			cursor->next = temp->next;
-			tid = temp->tid;
+			*pid = cursor->pid;
 
 			free_page_table(temp);
 			free(temp);

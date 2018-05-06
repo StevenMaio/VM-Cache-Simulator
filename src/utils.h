@@ -6,7 +6,7 @@
 
 int init_process(process_node **head, int pid);
 
-int kill_process(process_node **head, pthread_t tid);
+int kill_process(process_node **head, pthread_t tid, int *pid);
 
 void list(process_node *head);
 
