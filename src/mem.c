@@ -77,10 +77,10 @@ int main(void)
 		allocated[i] = 0;
 	}
 
+	sleep(5);
+
 	fifo_in = open("fifo_1", O_RDONLY);
 	fifo_out = open("fifo_2", O_WRONLY);
-
-	sleep(1);
 
 	// Main loop of the program
 	while (loop)
