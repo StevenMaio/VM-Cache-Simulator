@@ -70,7 +70,6 @@ int init_process(process_node **head, int pid)
 	pthread_t tid;
 	process_node *node, *cursor;
 
-	// TODO: Create a new thread
 	if (pthread_create(&tid, NULL, thread_func, NULL)) {
 		// IF an error occurred
 		printf("An error occurred creating a new process\n");
@@ -175,6 +174,11 @@ int cse320_virt_to_phys(process_node *node, int address) {
 	pte_no = address >> 22;
 	entry_no = address >> 12 & 0x3FF;
 
+	if (pte_no >= PT_ENTRIES || entry_no >= PT_ENTRIES)
+	{
+		return -1;
+	}
+
 	pt = *(node->pt);
 	pte = pt.entries[pte_no];
 
@@ -191,7 +195,6 @@ int cse320_virt_to_phys(process_node *node, int address) {
 /*
  * Kills a process
  *
- * TODO: Implement deallocating of memory
  */
 int kill_process(process_node **head, pthread_t tid, int *pid)
 {
@@ -209,7 +212,10 @@ int kill_process(process_node **head, pthread_t tid, int *pid)
 	{
 		temp = cursor;
 		*head = cursor->next;
-		*pid = cursor->pid;
+
+		// Set pid if non-NULL
+		if (pid)
+			*pid = cursor->pid;
 
 		free_page_table(cursor);
 		free(cursor);
@@ -230,7 +236,10 @@ int kill_process(process_node **head, pthread_t tid, int *pid)
 		if (temp->tid == tid)
 		{
 			cursor->next = temp->next;
-			*pid = cursor->pid;
+
+			// Set pid if non-NULL
+			if (pid)
+				*pid = cursor->pid;
 
 			free_page_table(temp);
 			free(temp);

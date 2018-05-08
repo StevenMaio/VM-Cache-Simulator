@@ -17,8 +17,6 @@
 int const MAX_THREADS = 4; 
 int const MAX_BUFFER_SIZE = 255;
 int num_threads = 0;
-int in_fd[2], out_fd[2];	// file descriptors
-int unalloc_mem_curs = 0;
 cache *cache_set;
 
 process_node *head = NULL;
@@ -52,6 +50,7 @@ int main(void)
 		printf("> ");
 		fgets(buffer, MAX_BUFFER_SIZE, stdin);
 
+		// Tokenize the input string
 		strtok(buffer, "\n");
 		strtok(buffer, " ");
 		args[0] = buffer;
@@ -117,11 +116,18 @@ int main(void)
 				if (pcursor->tid == tid)
 				{
 					mem_list(pcursor);
+					found = 1;
 					break;
 				}
 
 				pcursor = pcursor->next;
 			} while (pcursor);
+
+			if (!found)
+			{
+				printf("Error : invalid thread ID\n");
+				continue;
+			}
 		}
 
 		else if (!strcmp(buffer, "allocate"))
@@ -139,23 +145,30 @@ int main(void)
 			if (head == NULL)
 				continue;
 
-			// TODO: Search the processes to get the pid
-
-			// Call alloc in mem c
-			dprintf(fifo_out, "alloc %d\n%c", pid, 0);
-			read(fifo_in, mem_buffer, MAX_BUFFER_SIZE);
-			addr = atoi(mem_buffer);
-
+			// First, check to see if the tid is valid
 			do
 			{
 				if (pcursor->tid == tid)
 				{
+					pid = pcursor->pid;
 					cse320_malloc_helper(pcursor, addr);
+					found = 1;
 					break;
 				}
 
 				pcursor = pcursor->next;
 			} while (pcursor);
+
+			if (!found)
+			{
+				printf("Error : invalid thread ID\n");
+				continue;
+			}
+
+			// Call alloc in mem c
+			dprintf(fifo_out, "alloc %d\n%c", pid, 0);
+			read(fifo_in, mem_buffer, MAX_BUFFER_SIZE);
+			addr = atoi(mem_buffer);
 
 			// TODO: Check to see if an error occured
 		}
@@ -181,7 +194,10 @@ int main(void)
 				dprintf(fifo_out, "dealloc %d\n%c", pid, 0);
 			}
 
-
+			else
+			{
+				printf("Error : invalid thread ID\n");
+			}
 			// TODO: Handle if an error occured
 		}
 
@@ -222,11 +238,14 @@ int main(void)
 
 			// Restart the loop if there are no cursors
 			if (!found)
+			{
+				printf("Error : invalid thread ID\n");
 				continue;
+			}
 
 			if (addr == -1)
 			{
-				printf("Error : requested address hasn't been allocated\n");
+				printf("Error : requested address is not valid\n");
 				continue;
 			}
 
@@ -308,7 +327,10 @@ int main(void)
 
 			// Restart the loop if there are no cursors
 			if (!found)
+			{
+				printf("Error : invalid thread ID\n");
 				continue;
+			}
 
 			// Check to see if the addr is cached
 			if (is_cached(cache_set, addr, &prev_addr, &prev_value, &modified))
@@ -356,9 +378,18 @@ int main(void)
 	// End the mem process
 	dprintf(fifo_out, "exit\n%c", 0);
 
+	// TODO: Kill all of the processes
+	while (head)
+	{
+		tid = head->tid;
+		kill_process(&head, tid, NULL);
+	}
+
 	close(fifo_in);
 	close(fifo_out);
 
+	if (mem_buffer)
+		free(mem_buffer);
 	if (head)
 		free(head);
 	if (cache_set)
