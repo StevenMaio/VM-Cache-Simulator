@@ -1,4 +1,4 @@
-# Virtual Memory and Cache SImulator
+# Virtual Memory and Cache Simulator
 
 The purpose of this program is simulate a virtual memory system as well as a
 simple direct mapped cache.
@@ -7,9 +7,16 @@ On startup the program will wait briefly for 5 seconds. In order the simulate
 realtime latency, whenver a user attempts to read or write from 'main memory',
 the program will wait a brief amount of time.
 
-When a user attempts to read a 'physical' address that is stored
-in the cache, the program will print "cache hit" and will immediately print 
-the data is stored in this physical address. 
+When a user attempts to access a 'physical' address that is stored
+in the cache, the program will print `cache hit` and will immediately proceed
+with the rest of the command. If the 'physical' address is not stored in the
+cache, then the program will print `cache miss` and react accordingly depending
+on the command.
+
+On read, if the address is cached then the program will print the value stored
+at the particular address. If the address is not cached, then the program will
+retrieve it from 'main memory', then cache the address, and then finally print
+the value stored at the address.
 
 On the write command, the cache will evict whatever is stored inside the set 
 that the address will be cached in. To avoid accessing memory every time the
