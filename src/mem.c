@@ -43,9 +43,9 @@ int allocate(int pid)
 	position = cursor;
 
 	// Look for unallocated space 
-	while (allocated[cursor/4] & 1)
+	while (allocated[position/4] & 1)
 	{
-		cursor = (cursor + 4) % MAX_SIZE;
+		position = (position + 4) % MAX_SIZE;
 
 		if (position == cursor)
 		{
@@ -54,10 +54,10 @@ int allocate(int pid)
 	}
 
 	// Set the bit to being allocated
-	allocated[cursor/4] = 1 + (pid << 1);
-	temp = cursor;
+	allocated[position/4] = 1 + (pid << 1);
+	temp = position;
 
-	cursor = (cursor + 4) % MAX_SIZE;
+	cursor = (position + 4) % MAX_SIZE;
 	return temp;
 }
 
