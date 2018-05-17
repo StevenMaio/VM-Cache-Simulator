@@ -3,6 +3,20 @@
 The purpose of this program is simulate a virtual memory system as well as a
 simple direct mapped cache.
 
+On startup the program will wait briefly for 5 seconds. In order the simulate
+realtime latency, whenver a user attempts to read or write from 'main memory',
+the program will wait a brief amount of time.
+
+When a user attempts to read a 'physical' address that is stored
+in the cache, the program will print "cache hit" and will immediately print 
+the data is stored in this physical address. 
+
+On the write command, the cache will evict whatever is stored inside the set 
+that the address will be cached in. To avoid accessing memory every time the
+write command is used, we simply leave the updated value inside the cache 
+until we are forced to evict the particular line. Thus, we delay writing back
+to 'main memory' as much as possible.
+
 ### To Run this Program
 To compile the program, type `make` into the shell. Afterwards, make sure
 that both `main` and `mem` are running.
