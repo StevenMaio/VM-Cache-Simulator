@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
 
 #define MAX_ARGS 10
 #define MAX_ALLOC 256
@@ -65,6 +66,16 @@ int main(void)
 	// main loop ting
 	char *buffer, *cursor, *args[MAX_ARGS];
 	int addr, value, loop, num_args, i, fifo_in, fifo_out, pid;
+	sigset_t mask;
+
+	// Determine if an error occurred while setting hte mask
+	if (sigemptyset(&mask) || sigaddset(&mask, SIGINT))
+	{
+		printf("An error occurred\n");
+		exit(0);
+	}
+
+	sigprocmask(SIG_BLOCK, &mask, NULL);
 
 	// Initialize main memory (1024 bytes of mem)
 	memory = calloc(1024, 1);

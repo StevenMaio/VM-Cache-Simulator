@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include "structs.h"
 #include <signal.h>
+#include <sys/types.h>
+#include <pthread.h>
 
 // Array for keeping track of allocated and unallocated addresses
 //void *mem_alloc_arr = calloc(256, 1);
@@ -258,3 +260,36 @@ int kill_process(process_node **head, pthread_t tid, int *pid)
 
 	return 0;
 }
+
+/*
+ * Helper method for the mem command. Attempts to find the node in the linked
+ * list pointed to by head that has the tid as its value for tid. Then 
+ * rereferences cursor to the address of this node.
+ *
+ * Returns a 1 if the node was found, and a 0 otherwise and deferences cursor
+ * to null.
+ */
+int find_node(process_node *head, pthread_t tid, process_node **cursor)
+{
+	while (head != NULL)
+	{
+		if (head->tid == tid)
+		{
+			*cursor = head;
+			return 1;
+		}
+
+		head = head->next;
+	}
+
+	*cursor = NULL;
+	return 0;
+}
+
+// TODO: Implement allocate
+
+// TODO: Implement kill
+
+// TODO: Implement read
+
+// TODO: Implement write

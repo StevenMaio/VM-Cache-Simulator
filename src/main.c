@@ -10,6 +10,7 @@
 #include <signal.h>
 #include "structs.h"
 #include "utils.h"
+#include <signal.h>
 
 // I can probably change this later
 #define MAX_ARGS 10
@@ -27,9 +28,21 @@ int main(void)
 	// Initialize all the settings
 	char *buffer, *mem_buffer, *cursor, *args[MAX_ARGS];
 	process_node *pcursor;
+
 	int pid, addr, prev_addr, virt_addr, value, num_args, 
 		fifo_in, fifo_out, found, modified, prev_value, id_gen;
+
 	pthread_t tid;
+	sigset_t mask;
+
+	// Determine if an error occurred while setting hte mask
+	if (sigemptyset(&mask) || sigaddset(&mask, SIGINT))
+	{
+		printf("An error occurred\n");
+		exit(0);
+	}
+
+	sigprocmask(SIG_BLOCK, &mask, NULL);
 
 	buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
 	mem_buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
@@ -99,7 +112,6 @@ int main(void)
 		else if (!strcmp(buffer, "mem"))
 		{
 			tid = strtoul(args[1], NULL, 10);
-			pcursor = head;
 
 			if (num_args != 2)
 			{
@@ -107,27 +119,17 @@ int main(void)
 				continue;
 			}
 
-			// Restart the loop if there are no cursors
-			if (!head)
-				continue;
-
-			do
+			if (find_node(head, tid, &pcursor))
 			{
-				if (pcursor->tid == tid)
+				// List the address used by this porcess
+				if (pcursor)
 				{
 					mem_list(pcursor);
-					found = 1;
-					break;
+					continue;
 				}
-
-				pcursor = pcursor->next;
-			} while (pcursor);
-
-			if (!found)
-			{
-				printf("Error : invalid thread ID\n");
-				continue;
 			}
+
+			printf("Error : invalid thread ID\n");
 		}
 
 		else if (!strcmp(buffer, "allocate"))
@@ -141,36 +143,25 @@ int main(void)
 				continue;
 			}
 
-			// Restart the loop if there are no cursors
-			if (head == NULL)
-				continue;
-
-			// First, check to see if the tid is valid
-			do
-			{
-				if (pcursor->tid == tid)
-				{
-					pid = pcursor->pid;
-					cse320_malloc_helper(pcursor, addr);
-					found = 1;
-					break;
-				}
-
-				pcursor = pcursor->next;
-			} while (pcursor);
-
-			if (!found)
+			if (! find_node(head, tid, &pcursor))
 			{
 				printf("Error : invalid thread ID\n");
 				continue;
 			}
 
-			// Call alloc in mem c
+			// Get an available address
 			dprintf(fifo_out, "alloc %d\n%c", pid, 0);
 			read(fifo_in, mem_buffer, MAX_BUFFER_SIZE);
 			addr = atoi(mem_buffer);
 
-			// TODO: Check to see if an error occured
+			if (addr == -1)
+			{
+				printf("Error : not enough space available\n");
+				continue;
+			}
+
+			// Add the new address to the page table
+			cse320_malloc_helper(pcursor, addr);
 		}
 
 		else if (!strcmp(buffer, "kill"))
@@ -198,7 +189,6 @@ int main(void)
 			{
 				printf("Error : invalid thread ID\n");
 			}
-			// TODO: Handle if an error occured
 		}
 
 		else if (!strcmp(buffer, "read"))
@@ -213,35 +203,13 @@ int main(void)
 				continue;
 			}
 
-			// Check to see if the address is aligned
-			if (virt_addr%4)
-			{
-				printf("Error : requested address out of alignment\n");
-				continue;
-			}
-
-			// Restart the loop if there are no cursors
-			if (head == NULL)
-				continue;
-
-			do
-			{
-				if (pcursor->tid == tid)
-				{
-					addr = cse320_virt_to_phys(pcursor, virt_addr);
-					found = 1;
-					break;
-				}
-
-				pcursor = pcursor->next;
-			} while (pcursor);
-
-			// Restart the loop if there are no cursors
-			if (!found)
+			if (! find_node(head, tid, &pcursor))
 			{
 				printf("Error : invalid thread ID\n");
 				continue;
 			}
+
+			addr = cse320_virt_to_phys(pcursor, virt_addr);
 
 			if (addr == -1)
 			{
@@ -249,7 +217,6 @@ int main(void)
 				continue;
 			}
 
-			// TODO: Check to see if the addr is cached
 			if (is_cached(cache_set, addr, &prev_addr, &prev_value, &modified))
 			{
 				printf("cache hit\n");
@@ -288,7 +255,6 @@ int main(void)
 			
 		}
 
-		// TODO: Implement this correctly
 		else if (!strcmp(buffer, "write"))
 		{
 			tid = strtoul(args[1], NULL, 10);
@@ -302,33 +268,17 @@ int main(void)
 				continue;
 			}
 
-			// Check to see if the address is aligned 
-			if (virt_addr%4)
+			if (! find_node(head, tid, &pcursor))
 			{
-				printf("Error : requested address out of alignment\n");
+				printf("Error : invalid thread ID\n");
 				continue;
 			}
 
-			// Restart the loop if there are no cursors
-			if (head == NULL)
-				continue;
+			addr = cse320_virt_to_phys(pcursor, virt_addr);
 
-			do
+			if (addr == -1)
 			{
-				if (pcursor->tid == tid)
-				{
-					addr = cse320_virt_to_phys(pcursor, virt_addr);
-					found = 1;
-					break;
-				}
-
-				pcursor = pcursor->next;
-			} while (pcursor);
-
-			// Restart the loop if there are no cursors
-			if (!found)
-			{
-				printf("Error : invalid thread ID\n");
+				printf("Error : requested address is not valid\n");
 				continue;
 			}
 
@@ -378,7 +328,7 @@ int main(void)
 	// End the mem process
 	dprintf(fifo_out, "exit\n%c", 0);
 
-	// TODO: Kill all of the processes
+	// Kill all of the processes
 	while (head)
 	{
 		tid = head->tid;
