@@ -161,7 +161,7 @@ int main(void)
 			}
 
 			// Add the new address to the page table
-			cse320_malloc_helper(pcursor, addr);
+			malloc_helper(pcursor, addr);
 		}
 
 		else if (!strcmp(buffer, "kill"))
@@ -209,7 +209,7 @@ int main(void)
 				continue;
 			}
 
-			addr = cse320_virt_to_phys(pcursor, virt_addr);
+			addr = virt_to_phys(pcursor, virt_addr);
 
 			if (addr == -1)
 			{
@@ -274,7 +274,7 @@ int main(void)
 				continue;
 			}
 
-			addr = cse320_virt_to_phys(pcursor, virt_addr);
+			addr = virt_to_phys(pcursor, virt_addr);
 
 			if (addr == -1)
 			{

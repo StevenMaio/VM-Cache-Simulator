@@ -12,9 +12,9 @@ void list(process_node *head);
 
 void mem_list(process_node *process_node);
 
-int cse320_malloc_helper(process_node *node, int addr);
+int malloc_helper(process_node *node, int addr);
 
-int cse320_virt_to_phys(process_node *node, int address);
+int virt_to_phys(process_node *node, int address);
 
 int find_node(process_node *head, pthread_t tid, process_node **cursor);
 

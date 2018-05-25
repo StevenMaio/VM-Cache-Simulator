@@ -113,7 +113,7 @@ int get_virt_addr(int pt_entry_no, int entry_no)
 	return virt_addr;
 }
 
-int cse320_malloc_helper(process_node *node, int addr) {
+int malloc_helper(process_node *node, int addr) {
 	page_table *pt = node->pt;
 	page_entry *cursor;
 	int i, j, found, virt_addr;
@@ -167,7 +167,7 @@ int cse320_malloc_helper(process_node *node, int addr) {
  * Returns the corresponding 'physical' address. If the physical address
  * has not been allocated yet, the this function returns a null pointer
  */
-int cse320_virt_to_phys(process_node *node, int address) {
+int virt_to_phys(process_node *node, int address) {
 	page_table pt;
 	page_entry *pte;
 	int pte_no, entry_no;
