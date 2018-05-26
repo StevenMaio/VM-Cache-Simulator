@@ -52,3 +52,16 @@ the process with `tid` equal to `X`.
 process `X`.
 
 8. `exit` -- Exits the program and frees all allocated memory.
+
+## Pictures
+__Main Application__
+![alt text](./resources/screenshot_1.png "Main Application")
+
+__Mem Application__
+![alt text](./resources/screenshot_2.png "Mem Application")
+
+__Screenshot__
+![alt text](./resources/screenshot_3.png "Mem Application")
+
+__Another Screenshot__
+![alt text](./resources/screenshot_4.png "Mem Application")
